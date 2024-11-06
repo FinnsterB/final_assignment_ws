@@ -1,0 +1,50 @@
+ekf_filter_node:
+  ros__parameters:
+  # config/config.yaml
+    frequency: 30.0  # Run the filter at 30 Hz
+    sensor_timeout: 0.1  # Allow 100 ms for data to arrive
+    two_d_mode: true  # Use 2D mode (assume the robot operates on a flat surface)
+
+    # World Frame
+    world_frame: "odom"  # The global frame of reference
+    map_frame: "map"
+    odom_frame: "odom"
+    base_link_frame: "base_link"  # The frame tied to the robot
+
+    # State Vector
+    publish_tf: true  # Publish transforms for visualization
+    publish_acceleration: true
+
+    # # Process noise covariance (tune these values as needed)
+    # process_noise_covariance: [0.1, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #                           0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+    #                           0.0, 0.0, 0.1, 0.0, 0.0, 0.0,
+    #                           0.0, 0.0, 0.0, 0.1, 0.0, 0.0,
+    #                           0.0, 0.0, 0.0, 0.0, 0.1, 0.0,
+    #                           0.0, 0.0, 0.0, 0.0, 0.0, 0.1]
+
+    # Wheel Odometry Settings
+    odom0: smart_car/wheel/odom
+    odom0_config: [true, true, false,  # Position (x, y, z)
+                  false, false, true,  # Orientation (roll, pitch, yaw)
+                  true, false, false,   # Linear velocity (x, y, z)
+                  false, false, true]  # Angular velocity (roll, pitch, yaw)
+    odom0_differential: true
+    odom0_queue_size: 10
+
+    # IMU Settings
+    imu0: imu_data
+    imu0_config: [false, false, false,  # Position (x, y, z)
+                  true, true, true,     # Orientation (roll, pitch, yaw)
+                  false, false, false,  # Linear velocity (x, y, z)
+                  true, true, true]     # Angular velocity (roll, pitch, yaw)
+    imu0_differential: false
+    imu0_queue_size: 10
+
+    # # Initial estimation covariance
+    # initial_estimate_covariance: [0.1, 0.0, 0.0, 0.0, 0.0, 0.0,
+    #                           0.0, 0.1, 0.0, 0.0, 0.0, 0.0,
+    #                           0.0, 0.0, 0.1, 0.0, 0.0, 0.0,
+    #                           0.0, 0.0, 0.0, 0.1, 0.0, 0.0,
+    #                           0.0, 0.0, 0.0, 0.0, 0.1, 0.0,
+    #                           0.0, 0.0, 0.0, 0.0, 0.0, 0.1]
