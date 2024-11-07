@@ -1,121 +1,125 @@
-import os
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
 from launch_ros.actions import Node
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+import os
 from ament_index_python.packages import get_package_share_directory
+from launch.substitutions import Command
+from launch_ros.parameter_descriptions import ParameterValue
 
 def generate_launch_description():
-    # Directories
-    nav2_params_path = os.path.join(
-        get_package_share_directory('smart_car'), 'config', 'nav2_params.yaml'
+    ld = LaunchDescription()
+    package_name = 'smart_car'
+    smartcar_sim_path = FindPackageShare(package_name)
+    nav2_bringup_path = FindPackageShare('nav2_bringup')
+    urdf_file = os.path.join(
+        get_package_share_directory(package_name),
+        'urdf',
+        'smartcar.urdf.xacro'
     )
-    map_path = os.path.join(
-        get_package_share_directory('smart_car'), 'map', 'map.yaml'
+
+    default_rviz_config_path = PathJoinSubstitution([nav2_bringup_path, 'rviz', 'nav2_default_view.rviz'])
+
+    default_world_path = PathJoinSubstitution([smartcar_sim_path, 'world', 'smalltown.world'])
+
+    default_ekf_config_path = PathJoinSubstitution([smartcar_sim_path, 'config', 'config.yaml'])
+    default_map_config_path = PathJoinSubstitution([smartcar_sim_path, 'map', 'smalltown_world.yaml'])
+
+    rviz_config = os.path.join(
+    get_package_share_directory(package_name),
+    'rviz',
+    'visualize.rviz'
     )
 
-    # Launch configuration variables
-    use_sim_time = LaunchConfiguration('use_sim_time')
-    autostart = LaunchConfiguration('autostart')
-    map_yaml_file = LaunchConfiguration('map')
+    ld.add_action(DeclareLaunchArgument(name='rvizconfig', default_value=default_rviz_config_path,
+                                        description='Absolute path to rviz config file'))
 
-    return LaunchDescription([
-        # Launch arguments
-        DeclareLaunchArgument('use_sim_time', default_value='false', description='Use simulation time if true'),
-        DeclareLaunchArgument('autostart', default_value='true', description='Automatically start the Nav2 stack'),
-        DeclareLaunchArgument('map', default_value=map_path, description='Path to the map file'),
 
-        # Map server node
-        Node(
-            package='nav2_map_server',
-            executable='map_server',
-            name='map_server',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time},
-                        {'yaml_filename': map_yaml_file}]
+    ld.add_action(DeclareLaunchArgument(name='world', default_value=default_world_path,
+                                        description='Path to the Gazebo world file'))
+    
+    ld.add_action(DeclareLaunchArgument(name="ekf_config", default_value=default_ekf_config_path,
+                                        description='Path to extended kalman filter config'))
+    
+    ld.add_action(DeclareLaunchArgument(name="map_config", default_value=default_map_config_path,
+                                        description='Path to map config'))
+    # Define the robot description using xacro
+    robot_description = ParameterValue(Command(['xacro ', urdf_file]), value_type=str)
+
+    # In the robot_state_publisher node section
+    ld.add_action(Node(
+        package='robot_state_publisher',
+        executable='robot_state_publisher',
+        name='robot_state_publisher',
+        output='screen',
+        parameters=[{'robot_description': robot_description}, {'use_sim_time': True}]
+    ))
+
+    ld.add_action(Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        arguments=['-d', rviz_config]
+    ))
+
+    ld.add_action(Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='static_transform_publisher_map_odom',
+        arguments=['0','0','0','0','0','0','map','odom']
+    ))
+        
+    ld.add_action(Node(
+        package=package_name,
+        executable='joint_state_publisher.py',
+        parameters=[{'use_sim_time': True}]
+    ))
+
+    ld.add_action(Node(
+        package=package_name,
+        executable='wheel_odom_publisher.py',
+        parameters=[{'use_sim_time': True}]
+    ))
+
+    ld.add_action(Node(
+        package='robot_localization',
+        executable='ekf_node',
+        name='ekf_filter_node',
+        output='screen',
+        parameters=[LaunchConfiguration('ekf_config'), {'use_sim_time': True}]
+    ))
+
+    # Call this launch file before the next otherwise the map config doesn't get passed to the launch file????
+    ld.add_action(IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [PathJoinSubstitution([FindPackageShare('nav2_bringup'), 'launch', 'bringup_launch.py'])]
         ),
+        launch_arguments={'map': LaunchConfiguration('map_config')}.items()
+    ))
 
-        # AMCL localization node
-        Node(
-            package='nav2_amcl',
-            executable='amcl',
-            name='amcl',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time}, nav2_params_path]
-        ),
+    ld.add_action(Node(
+        package='rviz2',
+        executable='rviz2',
+        name='rviz2',
+        output='screen',
+        arguments=['-d', LaunchConfiguration('rvizconfig')]
+    ))
 
-        # Lifecycle manager to manage bringing up the navigation nodes
-        Node(
-            package='nav2_lifecycle_manager',
-            executable='lifecycle_manager',
-            name='lifecycle_manager_navigation',
-            output='screen',
-            parameters=[{'use_sim_time': use_sim_time},
-                        {'autostart': autostart},
-                        {'node_names': [
-                            'map_server',
-                            'amcl',
-                            'planner_server',
-                            'controller_server',
-                            'recoveries_server',
-                            'bt_navigator',
-                            'waypoint_follower'
-                        ]}]
+    ld.add_action(IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            [PathJoinSubstitution([FindPackageShare('gazebo_ros'), 'launch', 'gazebo.launch.py'])]
         ),
+        launch_arguments={'world': LaunchConfiguration('world')}.items()
+    ))
 
-        # Planner Server
-        Node(
-            package='nav2_planner',
-            executable='planner_server',
-            name='planner_server',
-            output='screen',
-            parameters=[nav2_params_path]
-        ),
+    # Spawn the robot entity into the Gazebo world
+    ld.add_action(Node(
+        package='gazebo_ros',
+        executable='spawn_entity.py',
+        arguments=['-entity', 'smart_robot_car', '-topic', 'robot_description'],
+        output='screen',
+    ))
 
-        # Controller Server
-        Node(
-            package='nav2_controller',
-            executable='controller_server',
-            name='controller_server',
-            output='screen',
-            parameters=[nav2_params_path]
-        ),
-
-        # Costmap Server (global)
-        Node(
-            package='nav2_costmap_2d',
-            executable='nav2_costmap_2d',
-            name='global_costmap',
-            output='screen',
-            parameters=[nav2_params_path],
-            remappings=[('odom', '/odometry/filtered')]
-        ),
-
-        # Costmap Server (local)
-        Node(
-            package='nav2_costmap_2d',
-            executable='nav2_costmap_2d',
-            name='local_costmap',
-            output='screen',
-            parameters=[nav2_params_path],
-            remappings=[('odom', '/odometry/filtered')]
-        ),
-
-        # BT Navigator
-        Node(
-            package='nav2_bt_navigator',
-            executable='bt_navigator',
-            name='bt_navigator',
-            output='screen',
-            parameters=[nav2_params_path]
-        ),
-
-        # Waypoint follower
-        Node(
-            package='nav2_waypoint_follower',
-            executable='waypoint_follower',
-            name='waypoint_follower',
-            output='screen',
-            parameters=[nav2_params_path]
-        ),
-    ])
+    return ld

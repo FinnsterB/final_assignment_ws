@@ -21,11 +21,6 @@
         <box size="0.3 0.15 0.01"/> <!-- Base dimensions based on wheelbase width -->
       </geometry>
     </visual>
-    <collision>
-      <geometry>
-        <box size="0.3 0.15 0.01"/>
-      </geometry>
-    </collision>
     <inertial>
       <mass value="1.0"/>
       <origin xyz="0 0 1"/>
@@ -37,14 +32,9 @@
   <link name="chassis_link">
     <visual>
       <geometry>
-        <box size="0.3 0.2 0.05"/> <!-- Dimensions of the chassis -->
+        <box size="0.3 0.15 0.05"/> <!-- Dimensions of the chassis -->
       </geometry>
     </visual>
-    <collision>
-      <geometry>
-        <box size="0.3 0.2 0.05"/>
-      </geometry>
-    </collision>
     <inertial>
       <mass value="5.0"/>
       <origin xyz="0 0 0"/>
@@ -158,11 +148,6 @@
         <cylinder length="0.1" radius="0.05"/>
       </geometry>
     </visual>
-    <collision>
-      <geometry>
-        <cylinder length="0.1" radius="0.05"/>
-      </geometry>
-    </collision>
     <inertial>
       <mass value="0.2"/>
       <origin xyz="0 0 0"/>
@@ -189,40 +174,24 @@
             <material name="imu_material"/>
         </visual>
 
-        <collision>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
-            <geometry>
-                <box size="${imu_size} ${imu_size} ${imu_size}"/>
-            </geometry>
-        </collision>
-
         <inertial>
             <mass value="0.1"/>
             <origin xyz="0 0 0" rpy="0 0 0"/>
-            <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001"/>
+            <inertia ixx="0.1" ixy="0.0" ixz="0.0" iyy="0.1" iyz="0.0" izz="0.1"/>
         </inertial>
     </link>
 
   <!-- Gazebo IMU sensor plugin -->
   <gazebo reference="imu_link">
-    <sensor type="imu" name="imu_sensor">
-      <always_on>1</always_on>
-      <update_rate>50</update_rate>
-      <imu>
-        <topic>imu/data</topic>
-        <gaussian_noise>0.01</gaussian_noise>
-      </imu>
-      <plugin name="gazebo_ros_imu_sensor" filename="libgazebo_ros_imu_sensor.so">
-        <ros>
-          <remapping>~/out:=imu_data</remapping>
-        </ros>
-        <update_rate>50</update_rate>
-        <robotNamespace>/robot_namespace</robotNamespace>
-        <bodyName>imu_link</bodyName>
-        <xyzOffset>0 0 0</xyzOffset>
-        <rpyOffset>0 0 0</rpyOffset>
-      </plugin>
-    </sensor>
+    <sensor name="my_imu" type="imu">
+            <always_on>true</always_on>
+            <update_rate>100</update_rate>
+            <plugin name="my_imu_plugin" filename="libgazebo_ros_imu_sensor.so">
+                <ros>
+                    <remapping>~/out:=imu_dataa</remapping>
+                </ros>
+            </plugin>
+        </sensor>
   </gazebo>
 
   <joint name="base_to_imu" type="fixed">

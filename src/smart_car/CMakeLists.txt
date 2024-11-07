@@ -25,7 +25,7 @@ install(PROGRAMS
 )
 
 install(
-  DIRECTORY launch urdf world rviz config
+  DIRECTORY launch urdf world rviz config map
   DESTINATION share/${PROJECT_NAME}
 )
 

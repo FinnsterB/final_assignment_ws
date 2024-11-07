@@ -26,21 +26,30 @@ ekf_filter_node:
 
     # Wheel Odometry Settings
     odom0: smart_car/wheel/odom
-    odom0_config: [true, true, false,  # Position (x, y, z)
-                  false, false, true,  # Orientation (roll, pitch, yaw)
-                  true, false, false,   # Linear velocity (x, y, z)
-                  false, false, true]  # Angular velocity (roll, pitch, yaw)
-    odom0_differential: true
+    odom0_config: [true, true, true,
+                       false, false, false,
+                       true,  true,  true,
+                       false, false, true,
+                       false, false, false]
     odom0_queue_size: 10
 
+
+
     # IMU Settings
-    imu0: imu_data
-    imu0_config: [false, false, false,  # Position (x, y, z)
-                  true, true, true,     # Orientation (roll, pitch, yaw)
-                  false, false, false,  # Linear velocity (x, y, z)
-                  true, true, true]     # Angular velocity (roll, pitch, yaw)
-    imu0_differential: false
+    imu0: imu_dataa
+    imu0_config: [false, false, false,
+                  true,  true,  true,
+                  false, false, false,
+                  false,  false,  false,
+                  true,  true,  true]
     imu0_queue_size: 10
+    imu0_nodelay: false
+    imu0_differential: false
+    imu0_relative: true
+    imu0_queue_size: 7
+    imu0_pose_rejection_threshold: 0.8                 # Note the difference in parameter names
+    imu0_twist_rejection_threshold: 0.8                #
+    imu0_linear_acceleration_rejection_threshold: 0.8  #
 
     # # Initial estimation covariance
     # initial_estimate_covariance: [0.1, 0.0, 0.0, 0.0, 0.0, 0.0,
