@@ -18,7 +18,8 @@ def generate_launch_description():
             package='smart_car',
             executable='joint_state_publisher.py',
             name='joint_state_publisher',
-            output='screen'
+            output='screen',
+            parameters=[{'use_sim_time': True}]
         ),
         
         # Wheel Odometry Publisher
@@ -26,7 +27,8 @@ def generate_launch_description():
             package='smart_car',
             executable='wheel_odom_publisher.py',
             name='wheel_odom_publisher',
-            output='screen'
+            output='screen',
+            parameters=[{'use_sim_time': True}]
         ),
 
         # Robot Localization EKF Node
@@ -35,6 +37,6 @@ def generate_launch_description():
             executable='ekf_node',
             name='ekf_filter_node',
             output='screen',
-            parameters=[config_file_path]
+            parameters=[config_file_path, {'use_sim_time': True}]
         )
     ])

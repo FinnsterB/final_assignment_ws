@@ -77,8 +77,6 @@ class VehicleStatusToTransform(Node):
         # Publish the transform
         self.odom_pub.publish(odomMsg)
 
-        print(angle)
-
         self.previousXPos = xPos
         self.previousYPos = yPos
         self.previousAngle = angle

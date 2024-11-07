@@ -7,11 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /RobotModel1
-        - /RobotModel1/Status1
         - /TF1
-        - /TF1/Status1
         - /Odometry1
-        - /Odometry1/Status1
       Splitter Ratio: 0.5
     Tree Height: 719
   - Class: rviz_common/Selection
@@ -154,8 +151,6 @@ Visualization Manager:
           Value: true
         odom:
           Value: true
-        wheel:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
@@ -179,8 +174,6 @@ Visualization Manager:
                 {}
             imu_link:
               {}
-          wheel:
-            {}
       Update Interval: 0
       Value: true
     - Angle Tolerance: 0.10000000149011612
@@ -199,7 +192,7 @@ Visualization Manager:
           Color: 204; 51; 204
           Scale: 1
           Value: true
-        Value: true
+        Value: false
       Enabled: true
       Keep: 100
       Name: Odometry
@@ -220,7 +213,7 @@ Visualization Manager:
         Filter size: 10
         History Policy: Keep Last
         Reliability Policy: Reliable
-        Value: /smart_car/wheel/odom
+        Value: /odometry/filtered
       Value: true
   Enabled: true
   Global Options:
@@ -268,7 +261,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.265911102294922
+      Distance: 7.836457252502441
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1

@@ -1,6 +1,7 @@
 ekf_filter_node:
   ros__parameters:
   # config/config.yaml
+    use_sim_time: true
     frequency: 30.0  # Run the filter at 30 Hz
     sensor_timeout: 0.1  # Allow 100 ms for data to arrive
     two_d_mode: true  # Use 2D mode (assume the robot operates on a flat surface)
